@@ -41,11 +41,14 @@ bool verbose = false;
 class Point {
 public:
   mpz_class x,y;
-
-  Point() {};
+  bool y_inf;
+  Point() {
+    y_inf = false;
+  };
   Point(mpz_class x, mpz_class y) {
     this->x = x;
     this->y = y;
+    y_inf = false;
   };
 
 };
@@ -127,14 +130,31 @@ void ecPlus(Curve& c, Point A, Point B, Point& res) {
   mpz_class s, temp;
   mpz_t r;
   mpz_init(r);
+  if(A.y_inf) {
+    res.x = B.x;
+    res.y = B.y;
+    res.y_inf = B.y_inf;
+    return;
+  }
+  if(B.y_inf) {
+    res.x = A.x;
+    res.y = A.y;
+    res.y_inf = A.y_inf;
+    return;
+  }
+  
   if ((B.x == A.x) && (B.y == A.y)) {
     temp = A.y * 2;
     mpz_invert(r, temp.get_mpz_t(), c.p.get_mpz_t());
     temp = mpz_class(r) * (A.x*A.x*3 + c.a);
     mpz_mod(r, temp.get_mpz_t(), c.p.get_mpz_t());
     s = mpz_class(r); 
- } else { 
+  } else { 
     temp = B.x - A.x;
+    if (cmp(temp,0) == 0) {
+      res.y_inf = true;
+      return;
+    }
     mpz_mod(r, temp.get_mpz_t(), c.p.get_mpz_t());
     temp = mpz_class(r);
     mpz_invert(r, temp.get_mpz_t(), c.p.get_mpz_t());
@@ -148,14 +168,15 @@ void ecPlus(Curve& c, Point A, Point B, Point& res) {
   temp = s*(A.x - res.x) - A.y;
   mpz_mod(r, temp.get_mpz_t(), c.p.get_mpz_t());
   res.y = mpz_class(r);
+  res.y_inf = false;
 }
 
 void ecMult(Curve& c, Point& pubK, mpz_class priK) {
   long bitCount = mpz_sizeinbase(priK.get_mpz_t(), 2);
   mpz_t r;
   mpz_init(r);
-  mpz_class two(2), bc(bitCount-1);
-  mpz_powm(r, two.get_mpz_t(), bc.get_mpz_t(), c.p.get_mpz_t());
+  mpz_class two(2);
+  mpz_pow_ui(r, two.get_mpz_t(), bitCount-1);
   mpz_class bitI(r);
 
   pubK.x = c.G.x;
@@ -194,14 +215,18 @@ void ec(char* a_str, char* b_str, char* p_str, char* n_str, char* G_str, const c
     verbose = false;
   }
 
-  cout << "private key: " << endl << "  " << priK << endl;
+  cout << "private key: " << endl << "  " << priK << " (" << mpz_sizeinbase(priK.get_mpz_t(), 2) << " bits)" << endl;
 
   Point pubK;
   ecMult(c, pubK, priK);
 
   cout << "public key: " << endl;
-  cout << " x = " << pubK.x << endl;
-  cout << " y = " << pubK.y << endl; 
+  if (pubK.y_inf) {
+    cout << " *Point at Infinity*" << endl;
+  } else {
+    cout << " x = " << pubK.x << endl;
+    cout << " y = " << pubK.y << endl; 
+  }
 }
 
 void printhelp(char* argv[]) {
