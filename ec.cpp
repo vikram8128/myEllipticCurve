@@ -63,7 +63,7 @@ public:
   }
 };
 
-mpz_class setHexMpz(char* str) {
+mpz_class setHexMpz(const char* str) {
   char tempStr[strlen(str) + 3];
   tempStr[0] = '0';
   tempStr[1] = 'x';
@@ -172,7 +172,7 @@ void ecMult(Curve& c, Point& pubK, mpz_class priK) {
   }
 }
 
-void ec(char* a_str, char* b_str, char* p_str, char* n_str, char* G_str, char* priK_str) {
+void ec(char* a_str, char* b_str, char* p_str, char* n_str, char* G_str, const char* priK_str) {
   Curve c;
   c.a = setHexMpz(a_str);
   c.b = setHexMpz(b_str);
@@ -184,13 +184,14 @@ void ec(char* a_str, char* b_str, char* p_str, char* n_str, char* G_str, char* p
 
   cout << hex;
   if (verbose) {
-    cout << "a = " << c.a << " " << mpz_sizeinbase(c.a.get_mpz_t(), 2) << endl;
-    cout << "b = " << c.b << " " << mpz_sizeinbase(c.b.get_mpz_t(), 2) << endl;
-    cout << "p = " << c.p << " " << mpz_sizeinbase(c.p.get_mpz_t(), 2) << endl;
-    cout << "n = " << c.n << " " << mpz_sizeinbase(c.n.get_mpz_t(), 2) << endl;
-    cout << "Gx = " << c.G.x << " " << mpz_sizeinbase(c.G.x.get_mpz_t(), 2) << endl;
-    cout << "Gy = " << c.G.y << " " << mpz_sizeinbase(c.G.y.get_mpz_t(), 2) << endl;
+    cout << "a = " << c.a << " (" << mpz_sizeinbase(c.a.get_mpz_t(), 2) << " bits)" << endl;
+    cout << "b = " << c.b << " (" << mpz_sizeinbase(c.b.get_mpz_t(), 2) << " bits)" << endl;
+    cout << "p = " << c.p << " (" << mpz_sizeinbase(c.p.get_mpz_t(), 2) << " bits)" << endl;
+    //cout << "n = " << c.n << " (" << mpz_sizeinbase(c.n.get_mpz_t(), 2) << " bits)" << endl;
+    cout << "Gx = " << c.G.x << " (" << mpz_sizeinbase(c.G.x.get_mpz_t(), 2) << " bits)" << endl;
+    cout << "Gy = " << c.G.y << " (" << mpz_sizeinbase(c.G.y.get_mpz_t(), 2) << " bits)" << endl;
     cout << "-------" << endl;
+    verbose = false;
   }
 
   cout << "private key: " << endl << "  " << priK << endl;
@@ -214,6 +215,7 @@ void printhelp(char* argv[]) {
   cout << "\t-p #\tspecify modulus in hex" << endl;
   cout << "\t-n #\tspecify cycle length in hex" << endl;
   cout << "\t-G #\tspecify generating point in hex" << endl;
+  cout << "<private key> can be specified in the last argument or in stdin" << endl;
   cout << endl;
 }
 
@@ -259,9 +261,14 @@ int main (int argc, char **argv) {
   }
 
   if (optind == argc) {
-    printf("Error: Nothing to work on\n");
-    printhelp(argv);
-    exit(7);
+    string priK_str;
+    printf("Enter private key in hex or ^D to quit:\n");
+    while(getline(cin, priK_str)) {
+      ec(a_str, b_str, p_str, n_str, G_str, priK_str.c_str());
+      printf("\nEnter private key in hex or ^D to quit:\n");
+    }
+    printf("done\n");
+    exit(0);
   } else if (optind + 1 != argc) {
     printf("Error: Too many arguments:\n");
     for (int i = optind; i < argc; i++)
