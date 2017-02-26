@@ -29,7 +29,7 @@ Usage:
         -p #    specify modulus in hex
         -n #    specify cycle length in hex
         -G #    specify generating point in hex
-    <private key> can be specified in the last argument or interactively
+    <private key> can be specified in the last argument or via standard input.
 
 Notes:
 
