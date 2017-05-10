@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <iomanip>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -224,8 +225,8 @@ void ec(char* a_str, char* b_str, char* p_str, char* n_str, char* G_str, const c
   if (pubK.y_inf) {
     cout << " *Point at Infinity*" << endl;
   } else {
-    cout << " x = " << pubK.x << endl;
-    cout << " y = " << pubK.y << endl; 
+    cout << " x = " << setfill('0') << setw(64) << pubK.x << endl;
+    cout << " y = " << setfill('0') << setw(64) << pubK.y << endl;
   }
 }
 
